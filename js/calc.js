@@ -62,12 +62,12 @@ const additional = [
    { id: 59, name: 'Гистологическое исследование', cost: 1600 },
    {id: 60, name: 'Дневной стационар, 3 часа', cost: 1500},
    { id: 61, name: 'Компрессионное бельё', cost: 5000 },
-   { id: 62, name: 'Чулки', cost: 2000 },
-   {id: 63, name: 'Топ', cost: 5000},
-   { id: 64, name: 'Бандаж', cost: 7700 },
-   { id: 65, name: 'Рукава', cost: 3950 },
-   { id: 66, name: 'Штаны (Капри, бриджи)', cost: 5750 },
-   { id: 67, name: 'Боди', cost: 8300 },
+   { id: 62, name: 'Компрессионные чулки', cost: 2000 },
+   {id: 63, name: 'Компрессионный топ', cost: 5000},
+   { id: 64, name: 'Компрессионный бандаж', cost: 7700 },
+   { id: 65, name: 'Компрессионные рукава', cost: 3950 },
+   { id: 66, name: 'Компрессионные штаны (Капри, бриджи)', cost: 5750 },
+   { id: 67, name: 'Компрессионный боди', cost: 8300 },
    {id: 68, name: 'Комбинезон', cost: 13800},
    {id: 69, name: 'Круглые импланты (2 шт)', cost: 70000},
    { id: 70, name: 'Круглый имплант (1 шт)', cost: 35000 },
@@ -119,16 +119,16 @@ function changeToHTML(currentPrice, list) {
    return currentPrice.map(item => `<div item_id='${item.id}'class='list_item ${list == 'operation' ? 'operation_item' : 'additional_item'}'>${item.name}</div>`).join('');
 }
 function newAction() {
-   const narcosisCost = narcosisTime > 60 ? Math.floor(+narcosisFirsthour + ((narcosisTime - 60) / 60 * +narcosisNexthours)) : Math.floor(narcosisTime / 60 * narcosisFirsthour);
-   const inclinicTimeResult = inclinicTime > 0 ? `\nПребывание в клинике ${inclinicTime} дн. — ${formatter.format(inclinicTime * 8000)}` + '₽' : '';
-   const narcosisTimeResult = narcosisTime > 0 ? `\nНаркоз ${Math.floor(narcosisTime / 60)} ч. ${Math.round(narcosisTime % 60)} мин. — ${formatter.format(narcosisCost)}` + '₽' : '';
-   const checkBoxResult = `${onedayCheckbox ? '\nЗаезд за день до операции + массаж — 8 000₽' : ''}`;
+   const narcosisCost = narcosisTime > 60 ? Math.floor(+narcosisFirsthour + ((narcosisTime - 60) / 60 * +narcosisNexthours)) : Math.floor(narcosisTime / 60 * narcosisFirsthour) + '\n';
+   const inclinicTimeResult = inclinicTime > 0 ? `Пребывание в клинике ${inclinicTime} дн. — ${formatter.format(inclinicTime * 8000)}` + '₽' + '\n' : '';
+   const narcosisTimeResult = narcosisTime > 0 ? `Наркоз ${Math.floor(narcosisTime / 60)} ч. ${Math.round(narcosisTime % 60)} мин. — ${formatter.format(narcosisCost)}` + '₽' + '\n' : '';
+   const checkBoxResult = `${onedayCheckbox ? 'Заезд за день до операции + массаж — 8 000₽' + '\n': ''}`;
 
    const viewResult = resultOperation.map(item => `${item.name} — ${formatter.format(item.cost)}₽\n`).join('')
       + narcosisTimeResult + checkBoxResult + inclinicTimeResult +
-      '\n\n' + resultAdditional.map(item => `${item.name} — ${formatter.format(item.cost)}₽\n`).join('')
+       resultAdditional.map(item => `${item.name} — ${formatter.format(item.cost)}₽\n`).join('');
    
-   textArea.innerHTML = viewResult + `\n\nИтого: ` + formatter.format([...resultOperation, ...resultAdditional].reduce((sum, current) => sum + current.cost, 0) + narcosisCost + inclinicTime * 8000 + (onedayCheckbox ? 8000 : 0)) + '₽';
+   textArea.innerHTML = viewResult + `Итого: ` + formatter.format([...resultOperation, ...resultAdditional].reduce((sum, current) => sum + current.cost, 0) + narcosisCost + inclinicTime * 8000 + (onedayCheckbox ? 8000 : 0)) + '₽';
 }
 
 function closeItem(parentNode, isOperationList) {
@@ -221,8 +221,14 @@ document.addEventListener("click", function (e) {
       resultOperation.push({ id: e.target.getAttribute('item_id'), name: e.target.textContent, cost: price[selectedOperationId - 1].cost });
       price.splice(price.findIndex(item => item.id == selectedOperationId), 1);
       operationsList.innerHTML = changeToHTML(price, 'operation');
-      newAction();
       inputOperations.value = '';
+      if (!resultAdditional.some(item => item.id == 62)) {
+         selectedAdditionalContainer.innerHTML = addItem(false, 62, 'Компрессионные чулки') + selectedAdditionalContainer.innerHTML;
+         resultAdditional.push({ id: 62, name: 'Компрессионные чулки', cost: 2000 });
+         additional.splice(6, 1);
+         additionalList.innerHTML = changeToHTML(additional, 'additional');
+      }
+      newAction();
    }
 
    if (e.target.classList.value == 'list_item additional_item') {
